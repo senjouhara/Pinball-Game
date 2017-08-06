@@ -1,7 +1,7 @@
 /**
  * Created by Chambers on 2017/8/5.
  */
-var Scene = function (game) {
+var MainScene = function (game) {
     var s = {
         game: game,
         ball: null,

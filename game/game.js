@@ -1,88 +1,78 @@
 /**
  * Created by Chambers on 2017/8/2.
  */
-var Game = function (fps, images, runCallback) {
-    var g = {
-        scene: null,
-        actions: {},
-        keydowns: {},
-        images: {},
-    }
-    //var canvas = document.querySelector('#id-canvas')
-    var context = canvas.getContext('2d')
-    g.canvas = canvas
-    g.context = context
-    //draw
-    g.drawImage = function (guaImage) {
-        g.context.drawImage(guaImage.image,guaImage.x,guaImage.y)
+class Game {
+    constructor(fps, images, runCallback) {
+        window.fps = fps
+        this.images = images
+        this.runCallback = runCallback
+
+        this.scene = null
+        this.actions = {}
+        this.keydowns = {}
+        this.canvas = canvas
+        this.context = canvas.getContext('2d')
+        //event
+        window.addEventListener('keydown', event => {
+            this.keydowns[event.key] = true
+        })
+        window.addEventListener('keyup', event => {
+            this.keydowns[event.key] = false
+        })
+        this.init()
     }
 
-    //event
-    window.addEventListener('keydown', function(event){
-        g.keydowns[event.key] = true
-    })
-    window.addEventListener('keyup', function(event){
-        g.keydowns[event.key] = false
-    })
-    g.registerAction = function(key, callback) {
-        g.actions[key] = callback
-    }
-    //update
-    g.update = function () {
-        g.scene.update()
-    }
-    //draw
-    g.draw = function () {
-        g.scene.draw()
+    static instance(...args){
+        this.i = this.i || new this(...args)
+        return this.i
     }
 
-    //timer
-    window.fps = 30
-    var runLoop = function () {
-        log(window.fps)
-        var actions = Object.keys(g.actions)
-        for(var i = 0; i < actions.length; i++){
-            var key = actions[i]
-            if(g.keydowns[key]){
-                // 如果按键被按下, 调用注册的 action
-                g.actions[key]()
-            }
-        }
-        //update
-        g.update()
-        //clear
-        context.clearRect(0, 0, canvas.width,canvas.height)
-        //draw
-        g.draw()
-        //next run loop
-        setTimeout(function () {
-            runLoop()
-        },1000/window.fps)
-    }
-
-
-    //load images
-    var loads = []
-    var names = Object.keys(images)
-    for (var i = 0; i < names.length; i++){
-        let name = names[i]
-        var path = images[name]
-        let img = new Image()
-        img.src = path
-        img.onload = function () {
-            //save to g.images
-            g.images[name] = img
-            //when load succeed run the game
-            loads.push(1)
-            // log('load images', loads.length, names.length)
-            if(loads.length == names.length){
-                // log('loag images',g.images)
-                g.__start()
+    init() {
+        var g = this
+        var loads = []
+        var names = Object.keys(this.images)
+        for (var i = 0; i < names.length; i++) {
+            let name = names[i]
+            var path = this.images[name]
+            let img = new Image()
+            img.src = path
+            img.onload = function () {
+                //save to g.images
+                g.images[name] = img
+                //when load succeed run the game
+                loads.push(1)
+                // log('load images', loads.length, names.length)
+                if (loads.length == names.length) {
+                    // log('loag images',g.images)
+                    g.__start()
+                }
             }
         }
     }
 
-    g.imageByName = function (name) {
+    __start() {
+        log('game start')
+        this.runCallback(this)
+    }
+
+    update() {
+        this.scene.update()
+    }
+
+    draw() {
+        this.scene.draw()
+    }
+
+    registerAction(key, callback) {
+        this.actions[key] = callback
+    }
+
+    drawImage(img) {
+        this.context.drawImage(img.image, img.x, img.y)
+    }
+
+    imageByName(name) {
+        var g = this
         log('image by name', g.images)
         var img = g.images[name]
         var image = {
@@ -92,23 +82,40 @@ var Game = function (fps, images, runCallback) {
         }
         return image
     }
-    g.runWithScene = function (scene) {
+
+    runWithScene(scene) {
+        var g = this
         g.scene = scene
-        log(g.scene)
         setTimeout(function () {
-            runLoop()
-        },1000/fps)
+            log(g)
+            g.runLoop()
+        }, 1000 / window.fps)
     }
 
-    g.replaceScene = function (scene) {
-        g.scene = scene
+    replaceScene(scene) {
+        this.scene = scene
     }
 
-    g.__start = function () {
-        log('game start')
-        runCallback(g)
-
+    runLoop() {
+        //event
+        var g = this
+        var actions = Object.keys(g.actions)
+        for (var i = 0; i < actions.length; i++) {
+            var key = actions[i]
+            if (g.keydowns[key]) {
+                // 如果按键被按下, 调用注册的 action
+                g.actions[key]()
+            }
+        }
+        //update
+        g.update()
+        //clear
+        g.context.clearRect(0, 0, canvas.width, canvas.height)
+        //draw
+        g.draw()
+        //next run loop
+        setTimeout(function () {
+            g.runLoop()
+        }, 1000 / window.fps)
     }
-
-    return g
 }

@@ -6,7 +6,8 @@ class Scene{
         this.game = game
     }
     static new(game){
-        return new this(game)
+        var i = new this(game)
+        return i
     }
     draw(){
 

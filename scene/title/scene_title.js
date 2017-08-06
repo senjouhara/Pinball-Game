@@ -5,7 +5,7 @@ class SceneTitle extends Scene{
     constructor(game) {
         super(game)
         game.registerAction('k', function () {
-            var s = Scene(game)
+            var s = MainScene(game)
             game.replaceScene(s)
         })
     }
